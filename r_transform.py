@@ -10,7 +10,7 @@ PATH = "F:/data/equity/us"
 
 # PRICE DATA --------------------------------------------------------------
 # Import QC daily data
-prices = pd.read_csv("F:/lean/data/stocks_daily.csv")
+prices = pd.read_csv("C:/Users/nikap/QuantImp/sample1/stocks_daily-1.csv")
 
 # Convert column names to lowercase and replace spaces with underscores
 prices.columns = prices.columns.str.lower().str.replace(' ', '_')
