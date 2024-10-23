@@ -19,9 +19,12 @@ prices.columns = prices.columns.str.lower().str.replace(' ', '_')
 prices.drop_duplicates(subset=["symbol", "date"], inplace=True)
 
 # Remove duplicates for symbols like 'phun' and 'phun.1'
-dups = prices.groupby(['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close']) \
+dups = prices.groupby(['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close', prices['symbol'].str[0]]) \
+             .agg(symbol=('symbol', 'first'), n=('symbol', 'size')) \
+             .reset_index()
+'''dups = prices.groupby(['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close']) \
              .apply(lambda x: x if len(x) == 1 else x[x['symbol'].str.contains(r'\.\d$')]) \
-             .reset_index(drop=True)
+             .reset_index(drop=True)'''
 
 symbols_remove = dups['symbol'].unique()
 prices = prices[~prices['symbol'].isin(symbols_remove)]
