@@ -1,9 +1,10 @@
 # Importing necessary libraries
 import pandas as pd
 import numpy as np
+from scipy.stats import linregress
 
 # Load data
-prices = pd.read_csv('C:/Users/nikap/QuantImp/sample/stocks_daily-1.csv')
+prices = pd.read_csv('C:/Users/nikap/QuantImp/sample/stocks_daily-2.csv')
 
 # Convert column names to lowercase and replace spaces with underscores
 prices.columns = prices.columns.str.lower().str.replace(' ', '_')
@@ -32,6 +33,7 @@ dups = dups.merge(prices[['date', 'open', 'high', 'low', 'close', 'volume', 'adj
                   on=['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close', 'symbol_short'],
                   how='left')
 symbols_remove = dups[dups['n'] > 1]
+#symbols_remove.to_csv('symbols_remove.csv', index=False)
 
 prices = prices.merge(symbols_remove, on=prices.columns.tolist(), how='left', indicator=True)
 # Keep only rows that are not in symbols_remove
@@ -86,18 +88,20 @@ prices = calculate_liquid(prices, 1000)
 prices.drop(columns=['dollar_volume_month'], inplace=True)
 
 # Rolling beta calculation (252-day rolling beta)
-from scipy.stats import linregress
-
 def rolling_beta(prices, window=252):
+    print(prices)
     def calc_beta(x):
+        print(x)
         if len(x) < 2:
             return np.nan
-        market = x['market_ret']
         asset = x['returns']
+        market = x['market_ret']
         slope, _, _, _, _ = linregress(market, asset)
         return slope
 
-    prices['beta'] = prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window).apply(calc_beta, raw=False)).reset_index(level=0, drop=True)
+    
+    test_prices=prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window, min_periods=window).apply(lambda x: x, raw=False)).reset_index(level=0, drop=True)
+    prices['beta'] = prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window, min_periods=window).apply(print, raw=False)).reset_index(level=0, drop=True)
     return prices
 
 prices = rolling_beta(prices)
