@@ -119,4 +119,5 @@ for pct in [0.99, 0.95, 0.90]:
 prices.sort_values(by=['symbol', 'date'], inplace=True)
 
 # Display the result for inspection
-print(prices(prices['beta_rank_largest_90']==1).head())
+
+print(prices[prices['beta_rank_largest_90'] == 1].head())
