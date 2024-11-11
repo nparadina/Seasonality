@@ -20,15 +20,6 @@ prices = prices.drop_duplicates(subset=['symbol', 'date'])
 prices['symbol_short'] = prices['symbol'].str.replace(r'\.\d$', '', regex=True)
 # Extract first character of symbol for `symbol_first`
 #prices['symbol_first'] = prices['symbol'].str[0]
-'''
-dups = prices.groupby(['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close', 'symbol_first']).size().reset_index(name='n')
-# Step 2: Merge back with the original prices DataFrame to include the symbol ans symbol_short
-dups = dups.merge(prices[['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close','symbol_short', 'symbol_first', 'symbol']],
-                  on=['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close', 'symbol_first'],
-                  how='left')
-# Those symbols that need to be removed will have more than one occurance after group, so n>1
-symbols_remove = dups[dups['n'] > 1]
-prices = prices[~prices['symbol'].str.contains(r'\.')]  # Removes entries with symbol containing "."'''
 
 dups = prices.groupby(['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close', 'symbol_short']).size().reset_index(name='n')
 dups = dups.merge(prices[['date', 'open', 'high', 'low', 'close', 'volume', 'adj_close','symbol_short', 'symbol']],
@@ -114,35 +105,6 @@ def rolling_beta(prices, window=252):
         prices.loc[group.index[window - 1:], 'beta'] = rolling_betas  # Start assigning from the 252nd row onwards
     
     return prices
-    
-    # #test_prices_g=prices.groupby('symbol')
-    # #test_prices_df=test_prices_g.apply(lambda x: x[['market_ret', 'returns']])
-    # #test_prices_r=test_prices_df.rolling(window, min_periods=window)
-    # #test_prices_df['test']=test_prices_df.rolling(window, min_periods=window).apply(lambda x: x['market_ret']+x['returns'], raw=False).reset_index(level=0, drop=True)
-    # #test_prices_p=test_prices_r.apply(print(), raw=False)
-    # #test_prices_p1=test_prices_r.apply(print(), raw=True)
-    # #prices['beta'] = prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window, min_periods=window).apply(calc_beta, raw=True)).reset_index(level=0, drop=True)
-    # prices_temp=prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window, min_periods=window))
-    # for  window_values in prices_temp:
-    #     #print((type(window_values)))
-    #     #print(window_values)
-    #     for window in window_values:
-    #         #print(type(window))
-    #         if len(window.index)>1:
-    #             #print(len(window.index))
-    #             #print("Win:",window)
-    #             print("Beta:", calc_beta(window))
-    # # for  window_val in prices_temp:
-    # #     print(f"Window {window_val}:")
-    # #     break
-
-    # # for  key, value in prices_temp.items():
-    # #     print(f"Index:{key};  Window {value}:")
-    # #     break
-    
-    # prices['beta'] =calc_beta(prices_temp).reset_index(level=0, drop=True)
-    # return prices
-
 prices = rolling_beta(prices)
 
 # Rank symbols by beta and label top 5%, 10%, and 1%
