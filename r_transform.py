@@ -9,8 +9,10 @@ prices = pd.read_csv('C:/Users/nikap/QuantImp/sample/stocks_daily-2.csv')
 # Convert column names to lowercase and replace spaces with underscores
 prices.columns = prices.columns.str.lower().str.replace(' ', '_')
 
+
 # Remove duplicate rows based on 'symbol' and 'date'
 prices = prices.drop_duplicates(subset=['symbol', 'date'])
+
 
 # Identify and remove rows with duplicated symbols (e.g., 'phun' and 'phun.1')
 # Duplicates based on symbol with a trailing ".number"
@@ -36,8 +38,10 @@ symbols_remove = dups[dups['n'] > 1]
 #symbols_remove.to_csv('symbols_remove.csv', index=False)
 
 prices = prices.merge(symbols_remove, on=prices.columns.tolist(), how='left', indicator=True)
+
 # Keep only rows that are not in symbols_remove
-prices[prices['_merge'] == 'left_only'].drop(columns=['_merge', 'symbol_short'],inplace=True )
+prices[prices['_merge'] == 'left_only']
+prices.drop(columns=['_merge', 'symbol_short','n'],inplace=True )
 
 # Adjust prices
 prices['adj_rate'] = prices['adj_close'] / prices['close']
@@ -89,20 +93,55 @@ prices.drop(columns=['dollar_volume_month'], inplace=True)
 
 # Rolling beta calculation (252-day rolling beta)
 def rolling_beta(prices, window=252):
-    print(prices)
-    def calc_beta(x):
-        print(x)
-        if len(x) < 2:
+    def calc_beta(window_data):
+        if len(window_data) < 2:
             return np.nan
-        asset = x['returns']
-        market = x['market_ret']
+        asset = window_data['returns']
+        market = window_data['market_ret']
         slope, _, _, _, _ = linregress(market, asset)
         return slope
-
     
-    test_prices=prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window, min_periods=window).apply(lambda x: x, raw=False)).reset_index(level=0, drop=True)
-    prices['beta'] = prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window, min_periods=window).apply(print, raw=False)).reset_index(level=0, drop=True)
+    prices['beta'] = np.nan  # Initialize beta column
+    for symbol, group in prices.groupby('symbol'):
+        # For each group, apply rolling window
+        rolling_betas = []
+        for start in range(len(group) - window + 1):
+            window_data = group.iloc[start:start + window]  # Select the window data
+            beta = calc_beta(window_data[['market_ret', 'returns']])  # Calculate beta for the window
+            rolling_betas.append(beta)  # Append the beta to the list
+        
+        # Now assign the calculated betas back to the original DataFrame
+        prices.loc[group.index[window - 1:], 'beta'] = rolling_betas  # Start assigning from the 252nd row onwards
+    
     return prices
+    
+    # #test_prices_g=prices.groupby('symbol')
+    # #test_prices_df=test_prices_g.apply(lambda x: x[['market_ret', 'returns']])
+    # #test_prices_r=test_prices_df.rolling(window, min_periods=window)
+    # #test_prices_df['test']=test_prices_df.rolling(window, min_periods=window).apply(lambda x: x['market_ret']+x['returns'], raw=False).reset_index(level=0, drop=True)
+    # #test_prices_p=test_prices_r.apply(print(), raw=False)
+    # #test_prices_p1=test_prices_r.apply(print(), raw=True)
+    # #prices['beta'] = prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window, min_periods=window).apply(calc_beta, raw=True)).reset_index(level=0, drop=True)
+    # prices_temp=prices.groupby('symbol').apply(lambda x: x[['market_ret', 'returns']].rolling(window, min_periods=window))
+    # for  window_values in prices_temp:
+    #     #print((type(window_values)))
+    #     #print(window_values)
+    #     for window in window_values:
+    #         #print(type(window))
+    #         if len(window.index)>1:
+    #             #print(len(window.index))
+    #             #print("Win:",window)
+    #             print("Beta:", calc_beta(window))
+    # # for  window_val in prices_temp:
+    # #     print(f"Window {window_val}:")
+    # #     break
+
+    # # for  key, value in prices_temp.items():
+    # #     print(f"Index:{key};  Window {value}:")
+    # #     break
+    
+    # prices['beta'] =calc_beta(prices_temp).reset_index(level=0, drop=True)
+    # return prices
 
 prices = rolling_beta(prices)
 
@@ -118,4 +157,4 @@ for pct in [0.99, 0.95, 0.90]:
 prices.sort_values(by=['symbol', 'date'], inplace=True)
 
 # Display the result for inspection
-print(prices.head())
+print(prices(prices['beta_rank_largest_90']==1).head())
