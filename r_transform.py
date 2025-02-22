@@ -7,6 +7,10 @@ from numba import njit, prange
 import psutil
 import rolling_beta_og as rb
 import rolling_beta_fast as rbf
+import rolling_beta_lingress_numba as rbln
+import rolling_beta_lstsq as rbls
+import rolling_beta_manual_numba as rbmn
+import rolling_beta_polyfit_NaN as rbpn
 
 print("Start", datetime.now())
 
