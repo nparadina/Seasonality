@@ -5,11 +5,8 @@ from scipy.stats import linregress
 from datetime import datetime
 from numba import njit, prange
 import psutil
-<<<<<<< HEAD
 import rolling_beta_og as rb
 import rolling_beta_fast as rbf
-=======
->>>>>>> c61d6f8 (Left at Nan Values in x collumn, fix)
 
 print("Start", datetime.now())
 
@@ -110,7 +107,6 @@ print("Here24",datetime.now())
 prices.drop(columns=['dollar_volume_month'], inplace=True)
 print("Here25",datetime.now())
 
-<<<<<<< HEAD
 
 # Ensure data is sorted before grouping
 prices.sort_values(by=['symbol', 'date'], inplace=True)
@@ -131,86 +127,6 @@ def calc_beta_numba(market_ret, asset_ret, window):
     """
     n = len(market_ret)
     rolling_betas = np.full(n, np.nan)  # Preallocate array for speed
-=======
-'''
-My 7hours function
-# Rolling beta calculation (252-day rolling beta)
-def rolling_beta(prices, window=252):
-    def calc_beta(window_data):
-        if len(window_data) < 2:
-            return np.nan
-        asset = window_data['returns']
-        market = window_data['market_ret']
-        slope, _, _, _, _ = linregress(market, asset)
-        return slope
->>>>>>> c61d6f8 (Left at Nan Values in x collumn, fix)
-    
-    for i in prange(window - 1, n):  # Start from window-1 to match rolling behavior
-        x = market_ret[i - window + 1 : i + 1]  # Market returns window
-        y = asset_ret[i - window + 1 : i + 1]   # Asset returns window
-        
-<<<<<<< HEAD
-        if len(x) >= 2:  # Need at least 2 points for linregress
-            slope, _, _, _, _ = linregress(x, y)
-            rolling_betas[i] = slope
-            
-    return rolling_betas
-
-=======
-        # Now assign the calculated betas back to the original DataFrame
-        prices.loc[group.index[window - 1:], 'beta'] = rolling_betas  # Start assigning from the 252nd row onwards
-    
-    return prices
-'''
-''' Rolling beta that takes 4 hhours
-def rolling_beta_fast(prices, window=252):
-    """
-    Optimized function to calculate rolling beta for each symbol using vectorized operations.
-    """
-    # Initialize beta column with NaN
-    prices['beta'] = np.nan  
-
-    # Group by symbol and calculate rolling beta
-    def calc_beta(group):
-        
-        """
-        Compute rolling beta using vectorized operations.
-        """
-        market_ret = group['market_ret']
-        asset_ret = group['returns']
-
-        # Perform rolling regression
-        rolling_betas = market_ret.rolling(window, min_periods=2).apply(
-            lambda x: linregress(x, asset_ret.loc[x.index])[0] if len(x) > 1 else np.nan,
-            raw=False
-        )
-        
-        return rolling_betas
-
-    # Apply optimized rolling beta calculation
-    prices['beta'] = prices.groupby('symbol', group_keys=False).apply(calc_beta)
-    return prices
-
-#Call to a slower rolling beta function
-#prices = rolling_beta(prices)
-
-# Ensure data is sorted before grouping
-prices.sort_values(by=['symbol', 'date'], inplace=True)
-print("Here26.1",datetime.now())
-# Run optimized function
-prices = rolling_beta_fast(prices)
-print("Here26.2",datetime.now())
-'''
-
-'''
-# Numba-optimized rolling beta calculation; errors because of the use of linregress with numba
-@njit(parallel=True)
-def calc_beta_numba(market_ret, asset_ret, window):
-    """
-    Calculate rolling beta using a Numba-accelerated approach.
-    """
-    n = len(market_ret)
-    rolling_betas = np.full(n, np.nan)  # Preallocate array for speed
     
     for i in prange(window - 1, n):  # Start from window-1 to match rolling behavior
         x = market_ret[i - window + 1 : i + 1]  # Market returns window
@@ -222,7 +138,6 @@ def calc_beta_numba(market_ret, asset_ret, window):
             
     return rolling_betas
 
->>>>>>> c61d6f8 (Left at Nan Values in x collumn, fix)
 # Optimized rolling beta function
 def rolling_beta_fast(prices, window=252):
     """
@@ -251,13 +166,8 @@ prices = rolling_beta_fast(prices)
 print("Here26.2",datetime.now())
 '''
 
-<<<<<<< HEAD
 '''
 #Option with polyfit from numpy instead of lingress; same problem as lingress with Numba, results in NaN Error; would work if nopython=False- To Test
-=======
-
-#Option with polyfit from numpy instead of lingress; same problem as lingress; would work if nopython=False- To Test
->>>>>>> c61d6f8 (Left at Nan Values in x collumn, fix)
 
 def calc_beta_numba(market_ret, asset_ret, window):
     """
@@ -311,17 +221,10 @@ print("Here26.1",datetime.now())
 prices = rolling_beta_fast(prices)
 print("Here26.2",datetime.now())
 
-<<<<<<< HEAD
 '''
 '''
 #Option with np.linalg.lstsq instead of polyfit and linregress. It performs least squares regression, which is equivalent to polyfit for degree-1 (linear) regression.
 # Unfortunatelly np.linalg.lstsq also isn't Numba compatible
-=======
-
-'''
-#Option with np.linalg.lstsq instead of polyfit and linregress. It performs least squares regression, which is equivalent to polyfit for degree-1 (linear) regression.
-# Unfortunatelly np.linalg.lstsq also isn't Numba comaptible
->>>>>>> c61d6f8 (Left at Nan Values in x collumn, fix)
 
 @njit(nopython=True,parallel=True)
 def calc_beta_numba(market_ret, asset_ret, window):
