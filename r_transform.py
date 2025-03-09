@@ -144,7 +144,6 @@ def rolling_beta(prices, window=252):
     return prices
 
 #Call to a  rolling beta function
-#prices = rbf.rolling_beta(prices)
 prices = rbf.rolling_beta(prices)
 
 print("Here26.2",datetime.now())
