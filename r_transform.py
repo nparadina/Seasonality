@@ -141,5 +141,4 @@ print("Here30",datetime.now())
 
 print(prices[prices['beta_rank_largest_99'] == 1].head())
 
-prices[prices['beta_rank_largest_90'] == 1].to_csv('prices.csv')
-print(datetime.now().time())
+prices[prices['beta_rank_largest_90'] == 1].to_csv(r'C:\Users\nikap\Documents\Snpectinatus\Seasonality results\prices.csv')
