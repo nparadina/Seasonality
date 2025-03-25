@@ -1,0 +1,4 @@
+# ...existing code...
+prices.csv
+# Add the file to ignore
+filename_to_ignore.csv
